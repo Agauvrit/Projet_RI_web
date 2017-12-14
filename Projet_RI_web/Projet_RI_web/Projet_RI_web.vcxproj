@@ -94,6 +94,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);ws2_32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -147,17 +148,93 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="http.h" />
+    <ClInclude Include="include\big_endian.h" />
+    <ClInclude Include="include\byte_order_generic.h" />
+    <ClInclude Include="include\byte_order_generic_x86.h" />
+    <ClInclude Include="include\byte_order_generic_x86_64.h" />
+    <ClInclude Include="include\decimal.h" />
+    <ClInclude Include="include\errmsg.h" />
+    <ClInclude Include="include\keycache.h" />
+    <ClInclude Include="include\little_endian.h" />
+    <ClInclude Include="include\mysql.h" />
+    <ClInclude Include="include\mysqld_ername.h" />
+    <ClInclude Include="include\mysqld_error.h" />
+    <ClInclude Include="include\mysql\client_authentication.h" />
+    <ClInclude Include="include\mysql\client_plugin.h" />
+    <ClInclude Include="include\mysql\get_password.h" />
+    <ClInclude Include="include\mysql\plugin_auth_common.h" />
+    <ClInclude Include="include\mysql\plugin_trace.h" />
+    <ClInclude Include="include\mysql\psi\mysql_file.h" />
+    <ClInclude Include="include\mysql\psi\mysql_idle.h" />
+    <ClInclude Include="include\mysql\psi\mysql_mdl.h" />
+    <ClInclude Include="include\mysql\psi\mysql_memory.h" />
+    <ClInclude Include="include\mysql\psi\mysql_socket.h" />
+    <ClInclude Include="include\mysql\psi\mysql_sp.h" />
+    <ClInclude Include="include\mysql\psi\mysql_stage.h" />
+    <ClInclude Include="include\mysql\psi\mysql_statement.h" />
+    <ClInclude Include="include\mysql\psi\mysql_table.h" />
+    <ClInclude Include="include\mysql\psi\mysql_thread.h" />
+    <ClInclude Include="include\mysql\psi\mysql_transaction.h" />
+    <ClInclude Include="include\mysql\psi\psi.h" />
+    <ClInclude Include="include\mysql\psi\psi_base.h" />
+    <ClInclude Include="include\mysql\psi\psi_memory.h" />
+    <ClInclude Include="include\mysql\service_mysql_alloc.h" />
+    <ClInclude Include="include\mysql_com.h" />
+    <ClInclude Include="include\mysql_com_server.h" />
+    <ClInclude Include="include\mysql_embed.h" />
+    <ClInclude Include="include\mysql_time.h" />
+    <ClInclude Include="include\mysql_version.h" />
+    <ClInclude Include="include\my_alloc.h" />
+    <ClInclude Include="include\my_attribute.h" />
+    <ClInclude Include="include\my_byteorder.h" />
+    <ClInclude Include="include\my_compiler.h" />
+    <ClInclude Include="include\my_config.h" />
+    <ClInclude Include="include\my_dbug.h" />
+    <ClInclude Include="include\my_dir.h" />
+    <ClInclude Include="include\my_getopt.h" />
+    <ClInclude Include="include\my_global.h" />
+    <ClInclude Include="include\my_list.h" />
+    <ClInclude Include="include\my_net.h" />
+    <ClInclude Include="include\my_pthread.h" />
+    <ClInclude Include="include\my_sys.h" />
+    <ClInclude Include="include\my_xml.h" />
+    <ClInclude Include="include\m_ctype.h" />
+    <ClInclude Include="include\m_string.h" />
+    <ClInclude Include="include\sql_common.h" />
+    <ClInclude Include="include\sql_state.h" />
+    <ClInclude Include="include\sslopt-case.h" />
+    <ClInclude Include="include\sslopt-longopts.h" />
+    <ClInclude Include="include\sslopt-vars.h" />
+    <ClInclude Include="include\typelib.h" />
+    <ClInclude Include="index.h" />
+    <ClInclude Include="mysql.h" />
+    <ClInclude Include="params.h" />
+    <ClInclude Include="socket.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="ThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Projet_RI_web.cpp" />
+    <ClCompile Include="http.cpp" />
+    <ClCompile Include="index.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ThreadPool.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\mysql\client_plugin.h.pp" />
+    <None Include="index.htm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\libmysql.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
