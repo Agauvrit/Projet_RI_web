@@ -15,39 +15,52 @@ extern ParamIndex params;
 
 void HttpRequest::GetResponse(SOCKET sd)
 {
-	char buffer[TAILLE];
-	char bufferReponse[TAILLE];
-	int nb;
-	std::string requeteClient;
-	std::string reponseServeur;
 
+	// Déclaration des variables
+	char buffer[TAILLE]; // Buffer de la requête client
+	char bufferReponse[TAILLE]; // Buffer de la réponse serveur
+	int nb;
+	std::string requeteClient; // Stockage de la requête client
+	std::string reponseServeur; // Stockage de la réponse serveur
+	bool requeteOk; // Si la requête abouti
+	int cpt = 0; // Compteur temporaire
+
+	// On attend la fin de la requête client et on stock
 	while (requeteClient.find("\r\n\r\n") == -1) {
 		nb = recv(sd, buffer, TAILLE, 0);
 		requeteClient.append(buffer);
 	}
 	
-	SetHeader(reponseServeur, (char*) "200", "text/html");
+	/* Etudier la requête client pour stocker les paramètres éventuels*/
+	requeteOk = true;
 	
+	// Préparation de la réponse 
+
+	if(requeteOk) SetHeader(reponseServeur, (char*) "200", "text/html"); // Dans le cas ou il n'y a pas d'erreur
+	else SetHeader(reponseServeur, (char*) "404", "text/html"); // Dans le cas ou il y a une erreur de fichier manquant
+
+	// Dans le cas ou l'on accède à la racine
+	// Lecture de l'index
 	std::ifstream ifs("index.htm");
 	std::string content((std::istreambuf_iterator<char>(ifs)),
 		(std::istreambuf_iterator<char>()));
-
+	// Ajout du corps de la réponse
 	reponseServeur.append(content);
 
-	int i;
-	int cpt = 0;
+	// Parcours de la réponse pour la bufferiser et l'envoyer au client
 	while (reponseServeur.length() - cpt > TAILLE) {
-		for (i = cpt; i < cpt+TAILLE; i++) {
+		for (int i = cpt; i < cpt+TAILLE; i++) {
 			bufferReponse[i-cpt] = reponseServeur.at(i);
 		}
 		cpt += TAILLE;
 		nb = send(sd, bufferReponse, TAILLE, 0);
 	}
 
+	// Envoi de la fin de la réponse
 	for (int j = cpt; j <= reponseServeur.length()-1; j++) {
 		bufferReponse[j-cpt] = reponseServeur.at(j);
 	}
-	// Maintenant il faut vider le reste du buffer.
+	// Vider le reste du buffer et envoyer la fin de la réponse
 	for (int k = reponseServeur.length() - cpt; k <= TAILLE-1; k++) {
 		bufferReponse[k] = ' ';
 	}
