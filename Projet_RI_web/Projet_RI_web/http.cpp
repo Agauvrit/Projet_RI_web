@@ -37,11 +37,10 @@ void HttpRequest::GetResponse(SOCKET sd)
 	int i;
 	int cpt = 0;
 	while (reponseServeur.length() - cpt > TAILLE) {
-		for (i = cpt; i <= cpt+TAILLE; i++) {
-			bufferReponse[i] = reponseServeur.at(i);
+		for (i = cpt; i < cpt+TAILLE; i++) {
+			bufferReponse[i-cpt] = reponseServeur.at(i);
 		}
 		cpt += TAILLE;
-		printf(bufferReponse);
 		nb = send(sd, bufferReponse, TAILLE, 0);
 	}
 
@@ -49,7 +48,7 @@ void HttpRequest::GetResponse(SOCKET sd)
 		bufferReponse[j-cpt] = reponseServeur.at(j);
 	}
 	// Maintenant il faut vider le reste du buffer.
-	for (int k = reponseServeur.length() - cpt; k <= TAILLE; k++) {
+	for (int k = reponseServeur.length() - cpt; k <= TAILLE-1; k++) {
 		bufferReponse[k] = ' ';
 	}
 	nb = send(sd, bufferReponse, TAILLE, 0);
