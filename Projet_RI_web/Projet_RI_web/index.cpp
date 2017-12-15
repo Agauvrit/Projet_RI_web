@@ -24,8 +24,7 @@ void IndexData()
 			if (!mysql_query(conn, sql.c_str())) std::cout << "Empty table '" << table << "'" << std::endl;
 			else std::cerr << mysql_error(conn) << std::endl;
 		}
-
-
+	
 
 		// Calcul du pageRank uniquement a partir de la matrice dans link.txt
 
@@ -35,5 +34,5 @@ void IndexData()
 
 		mysql_close(conn);
 	}
-	std::cerr << mysql_error(conn) << std::endl;
+	else std::cerr << mysql_error(conn) << std::endl;
 }

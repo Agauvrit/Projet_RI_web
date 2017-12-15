@@ -242,5 +242,45 @@
     <Text Include="config.txt">
       <Filter>Source Files</Filter>
     </Text>
+    <Text Include="data\links.txt" />
+    <Text Include="data\files\0.txt" />
+    <Text Include="data\files\1.txt" />
+    <Text Include="data\files\2.txt" />
+    <Text Include="data\files\3.txt" />
+    <Text Include="data\files\4.txt" />
+    <Text Include="data\files\5.txt" />
+    <Text Include="data\files\6.txt" />
+    <Text Include="data\files\7.txt" />
+    <Text Include="data\files\8.txt" />
+    <Text Include="data\files\9.txt" />
+    <Text Include="data\files\10.txt" />
+    <Text Include="data\files\11.txt" />
+    <Text Include="data\files\12.txt" />
+    <Text Include="data\files\13.txt" />
+    <Text Include="data\files\14.txt" />
+    <Text Include="data\files\15.txt" />
+    <Text Include="data\files\16.txt" />
+    <Text Include="data\files\17.txt" />
+    <Text Include="data\files\18.txt" />
+    <Text Include="data\files\19.txt" />
+    <Text Include="data\files\20.txt" />
+    <Text Include="data\files\21.txt" />
+    <Text Include="data\files\22.txt" />
+    <Text Include="data\files\23.txt" />
+    <Text Include="data\files\24.txt" />
+    <Text Include="data\files\25.txt" />
+    <Text Include="data\files\26.txt" />
+    <Text Include="data\files\27.txt" />
+    <Text Include="data\files\28.txt" />
+    <Text Include="data\files\29.txt" />
+    <Text Include="data\files\30.txt" />
+    <Text Include="data\files\31.txt" />
+    <Text Include="data\files\32.txt" />
+    <Text Include="data\files\33.txt" />
+    <Text Include="data\files\34.txt" />
+    <Text Include="data\files\35.txt" />
+    <Text Include="data\files\36.txt" />
+    <Text Include="data\files\37.txt" />
+    <Text Include="data\files\38.txt" />
   </ItemGroup>
 </Project>
