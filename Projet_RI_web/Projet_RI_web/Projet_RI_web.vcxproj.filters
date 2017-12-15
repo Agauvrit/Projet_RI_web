@@ -238,4 +238,9 @@
   <ItemGroup>
     <Library Include="lib\libmysql.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="config.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

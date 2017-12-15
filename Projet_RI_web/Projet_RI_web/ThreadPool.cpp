@@ -34,4 +34,5 @@ void ThreadPool::ThreadFunction()
 
 		lock.lock();
 	}
+	lock.unlock();
 }

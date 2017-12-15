@@ -25,6 +25,12 @@ void IndexData()
 			else std::cerr << mysql_error(conn) << std::endl;
 		}
 
+
+
+		// Calcul du pageRank uniquement a partir de la matrice dans link.txt
+
+		// Rajout des mots des pages et des PageRank
+
 //TODO: à vous de jouer ...
 
 		mysql_close(conn);
