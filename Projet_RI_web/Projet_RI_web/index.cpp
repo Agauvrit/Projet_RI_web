@@ -10,7 +10,8 @@ extern ParamIndex params;
 void IndexData()
 {
 	MYSQL *conn=nullptr;
-	
+	const char* basefile;
+
 	conn=mysql_init(conn);
 	if (mysql_real_connect(conn, params.ServerName.c_str(), params.Login.c_str(), params.Password.c_str(), params.SchemeName.c_str(), 0, NULL, 0))
 	{
@@ -25,6 +26,14 @@ void IndexData()
 			else std::cerr << mysql_error(conn) << std::endl;
 		}
 	
+		basefile = params.BaseFiles.append("files/").c_str();
+
+		std::vector<std::string> filesnames;
+		for (int i = 0; i <= 39; i++) {
+			// Ajouter les numéros de fichier avec le lien de base vers les fichiers
+			filesnames.push_back();
+		}
+
 
 		// Calcul du pageRank uniquement a partir de la matrice dans link.txt
 
