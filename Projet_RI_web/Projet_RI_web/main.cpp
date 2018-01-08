@@ -33,9 +33,7 @@ void ReadConfFile(ParamIndex &params)
 					case 2:params.Password=tmp;break;
 					case 3:params.SchemeName=tmp;break;
 					case 4:
-						printf("ICI");
 						if ((tmp[tmp.size()-1]!='/') && (tmp[tmp.size()-1]!='\\')) tmp+='\\';
-						printf("ntm");
 						params.BaseFiles=tmp;
 						break;
 					}
