@@ -36,8 +36,8 @@ void IndexData()
 		basefile = params.BaseFiles.append("files/").c_str();
 
 		std::map<int, std::string> filesnames;
-		// Tous les fichiers sont intitulés de 0 a 39
-		for (int i = 0; i <= 39; i++) {
+		// Tous les fichiers sont intitulés de 0 a 38
+		for (int i = 0; i <= 38; i++) {
 			// Ajouter les numéros de fichier avec le lien de base vers les fichiers
 			std::string filename = basefile + static_cast<std::ostringstream*>(&(std::ostringstream() << i))->str() + ".txt";
 			filesnames.insert(std::pair<int, std::string>(i, filename));
@@ -53,14 +53,12 @@ void IndexData()
 
 			std::ifstream file;
 			std::string tmp = "C:\\Users/Game/Source/Repos/Projet_RI_web/Projet_RI_web/Projet_RI_web/data/files/0.txt";
-			file.open(tmp);
+			file.open(i_filename.second);
 			if (!file.is_open()) {
 				std::cout << i_filename.second << std::endl;
 				std::cout << "error" << std::endl;
 				return;
 			}
-			std::cout << "lala" << std::endl;
-			std::cout << tmp << std::endl;
 			std::cout << i_filename.second << std::endl;
 			
 			std::string word;
