@@ -1,6 +1,7 @@
 #include <ctime>
 #include <sstream>
 #include <fstream>
+#include <iostream>
 #include <iomanip>
 #include "http.h"
 #include "params.h"
@@ -15,13 +16,35 @@ extern ParamIndex params;
 
 void HttpRequest::GetResponse(SOCKET sd)
 {
+	std::cout << "Début requête client" << std::endl;
 
-	// Déclaration des variables
-	char buffer[TAILLE]; // Buffer de la requête client
-	char bufferReponse[TAILLE]; // Buffer de la réponse serveur
-	int nb;
-	std::string requeteClient; // Stockage de la requête client
-	std::string reponseServeur; // Stockage de la réponse serveur
+	char buffer[TAILLE], bufferReponse[TAILLE]; // Buffer de la requête client et réponse serveur
+	int nb, cpt=0;
+	std::string reponseServeur, requeteClient;
+
+	SetHeader(reponseServeur, (char*) "200", "text/html");
+	
+	/* Envoi de la réponse contenant seulement la barre de recherche au client*/
+	// Parcours de la réponse pour la bufferiser et l'envoyer au client
+	while (reponseServeur.length() - cpt > TAILLE) {
+		for (int i = cpt; i < cpt + TAILLE; i++) {
+			bufferReponse[i - cpt] = reponseServeur.at(i);
+		}
+		cpt += TAILLE;
+		nb = send(sd, bufferReponse, TAILLE, 0);
+	}
+	// Envoi de la fin de la réponse
+	for (int j = cpt; j <= reponseServeur.length() - 1; j++) {
+		bufferReponse[j - cpt] = reponseServeur.at(j);
+	}
+	// Vider le reste du buffer et envoyer la fin de la réponse
+	for (int k = reponseServeur.length() - cpt; k <= TAILLE - 1; k++) {
+		bufferReponse[k] = ' ';
+	}
+	nb = send(sd, bufferReponse, TAILLE, 0);
+
+	/*
+	
 	bool requeteOk; // Si la requête abouti
 	int cpt = 0; // Compteur temporaire
 
@@ -30,8 +53,9 @@ void HttpRequest::GetResponse(SOCKET sd)
 		nb = recv(sd, buffer, TAILLE, 0);
 		requeteClient.append(buffer);
 	}
-	
-	/* Etudier la requête client pour stocker les paramètres éventuels*/
+	*/
+	/* Etudier la requête client pour stocker les paramètres éventuels */
+	/*
 	requeteOk = true;
 	
 	// Préparation de la réponse 
@@ -74,12 +98,14 @@ void HttpRequest::GetResponse(SOCKET sd)
 	// générer entete ici avec une fonction
 	// Faire un code html dans le corps
 
-	
+	*/
 }
 
 void HttpRequest::SetHeader(std::string &AnswerBuf, char *httpCode, const char *mime)
 {
 	std::stringstream header;
+	std::ifstream fichier("./index.htm");
+	std::string ligne;
 
 	// GetTime
 	auto t=std::time(nullptr);
@@ -90,6 +116,8 @@ void HttpRequest::SetHeader(std::string &AnswerBuf, char *httpCode, const char *
 	header << "Server: WebSearchServer/1.0" << "\r\n";
 	header << "Content-Type: " << mime << "\r\n";
 	header << "\r\n";
+
+	while (std::getline(fichier, ligne)) header << ligne;
 
 	AnswerBuf=header.str();
 }
