@@ -2,4 +2,4 @@ localhost
 root
 
 doregauvrit
-C:\\Users/Game/Source/Repos/Projet_RI_web/Projet_RI_web/Projet_RI_web/data/
+C:\\Users/Aurélien/Desktop/Donnees/Données/data/

@@ -19,6 +19,7 @@ void IndexData()
 	conn=mysql_init(conn);
 	if (mysql_real_connect(conn, params.ServerName.c_str(), params.Login.c_str(), params.Password.c_str(), params.SchemeName.c_str(), 0, NULL, 0))
 	{
+		
 		// Noms des tables
 		std::vector<std::string> tables={"word_page","page","word"};
 
@@ -43,6 +44,7 @@ void IndexData()
 			filesnames.insert(std::pair<int, std::string>(i, filename));
 		}
 
+
 		for (std::pair<int,std::string> i_filename : filesnames) {
 			// Ajout dans la table page
 			std::string sql = "INSERT INTO " + tables.at(1) + " (url) VALUES(\"" + i_filename.second + "\")"; // Récupération url
@@ -54,17 +56,15 @@ void IndexData()
 			std::ifstream file;
 			std::string tmp = "C:\\Users/Game/Source/Repos/Projet_RI_web/Projet_RI_web/Projet_RI_web/data/files/0.txt";
 			file.open(i_filename.second);
-			if (!file.is_open()) {
-				std::cout << i_filename.second << std::endl;
-				std::cout << "error" << std::endl;
-				return;
+			if (!file.is_open()) {std::cout << i_filename.second << std::endl;
+				std::cout << "erreur d'ouverture de fichiers" << std::endl;
+				exit(EXIT_FAILURE);
 			}
-			std::cout << i_filename.second << std::endl;
 			
 			std::string word;
 			while (file >> word)
 			{
-				if(i_filename.first = 0)
+				if(i_filename.first == 0)
 					std::cout << word << std::endl;
 			}
 		
