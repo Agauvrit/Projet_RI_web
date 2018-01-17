@@ -20,42 +20,55 @@ void HttpRequest::GetResponse(SOCKET sd)
 
 	char buffer[TAILLE], bufferReponse[TAILLE]; // Buffer de la requête client et réponse serveur
 	int nb, cpt=0;
-	std::string reponseServeur, requeteClient;
+	std::string reponseServeur, requeteClient, requete="";
 
 	SetHeader(reponseServeur, (char*) "200", "text/html");
+
+	/*
+	// On attend la fin de la requête D'accès à la page
+	while (requeteClient.find("\r\n\r\n") == -1) {
+		nb = recv(sd, buffer, TAILLE, 0);
+		requeteClient.append(buffer);
+	}
+	*/
 	
-	/* Envoi de la réponse contenant seulement la barre de recherche au client*/
+	/* Envoi de la réponse contenant seulement la barre de recherche au client */
 	// Parcours de la réponse pour la bufferiser et l'envoyer au client
 	while (reponseServeur.length() - cpt > TAILLE) {
-		for (int i = cpt; i < cpt + TAILLE; i++) {
+		for (unsigned int i = cpt; i < cpt + TAILLE; i++) {
 			bufferReponse[i - cpt] = reponseServeur.at(i);
 		}
 		cpt += TAILLE;
 		nb = send(sd, bufferReponse, TAILLE, 0);
 	}
 	// Envoi de la fin de la réponse
-	for (int j = cpt; j <= reponseServeur.length() - 1; j++) {
+	for (unsigned int j = cpt; j <= reponseServeur.length() - 1; j++) {
 		bufferReponse[j - cpt] = reponseServeur.at(j);
 	}
 	// Vider le reste du buffer et envoyer la fin de la réponse
-	for (int k = reponseServeur.length() - cpt; k <= TAILLE - 1; k++) {
+	for (unsigned int k = reponseServeur.length() - cpt; k <= TAILLE - 1; k++) {
 		bufferReponse[k] = ' ';
 	}
 	nb = send(sd, bufferReponse, TAILLE, 0);
-
-	/*
+	reponseServeur = "";
+	requeteClient ="";
 	
-	bool requeteOk; // Si la requête abouti
-	int cpt = 0; // Compteur temporaire
-
-	// On attend la fin de la requête client et on stock
-	while (requeteClient.find("\r\n\r\n") == -1) {
+	// On attend la fin de la requête client et la stock pour l'analyser
+	do {
 		nb = recv(sd, buffer, TAILLE, 0);
 		requeteClient.append(buffer);
-	}
-	*/
-	/* Etudier la requête client pour stocker les paramètres éventuels */
+	} while (nb == TAILLE);
+	nb = 0;
+
+	// Analyse de la requête par la machine à état
+	RequeteMachineEtats(requeteClient, requete);
+	std::cout << "ICI LA REQUETE : " << requete << std::endl;
+
+	
 	/*
+	
+	/* Etudier la requête client pour stocker les paramètres éventuels 
+	
 	requeteOk = true;
 	
 	// Préparation de la réponse 
@@ -63,32 +76,8 @@ void HttpRequest::GetResponse(SOCKET sd)
 	if(requeteOk) SetHeader(reponseServeur, (char*) "200", "text/html"); // Dans le cas ou il n'y a pas d'erreur
 	else SetHeader(reponseServeur, (char*) "404", "text/html"); // Dans le cas ou il y a une erreur de fichier manquant
 
-	// Dans le cas ou l'on accède à la racine
-	// Lecture de l'index
-	std::ifstream ifs("index.htm");
-	std::string content((std::istreambuf_iterator<char>(ifs)),
-		(std::istreambuf_iterator<char>()));
-	// Ajout du corps de la réponse
-	reponseServeur.append(content);
 
-	// Parcours de la réponse pour la bufferiser et l'envoyer au client
-	while (reponseServeur.length() - cpt > TAILLE) {
-		for (int i = cpt; i < cpt+TAILLE; i++) {
-			bufferReponse[i-cpt] = reponseServeur.at(i);
-		}
-		cpt += TAILLE;
-		nb = send(sd, bufferReponse, TAILLE, 0);
-	}
 
-	// Envoi de la fin de la réponse
-	for (int j = cpt; j <= reponseServeur.length()-1; j++) {
-		bufferReponse[j-cpt] = reponseServeur.at(j);
-	}
-	// Vider le reste du buffer et envoyer la fin de la réponse
-	for (int k = reponseServeur.length() - cpt; k <= TAILLE-1; k++) {
-		bufferReponse[k] = ' ';
-	}
-	nb = send(sd, bufferReponse, TAILLE, 0);
 	
 	// Récupérer l'ensemble de la requete. "http:// /moteur?q=val+
 	// Récupérer la partie moteur dans 
@@ -97,9 +86,46 @@ void HttpRequest::GetResponse(SOCKET sd)
 
 	// générer entete ici avec une fonction
 	// Faire un code html dans le corps
-
 	*/
+	
 }
+
+void HttpRequest::RequeteMachineEtats(std::string requeteClient, std::string &result)
+{
+	int etat = 0, cpt=0;
+
+	while (etat != 4) {
+		switch (etat) {
+		case 0:
+			if (requeteClient[cpt] == '/') {
+				etat = 1;
+			}
+			break;
+		case 1:
+			if (requeteClient[cpt] == '?') {
+				etat = 2;
+			}
+			else if (requeteClient[cpt] == ' ') {
+				etat = 4;
+			}
+			break;
+		case 2:
+			if (requeteClient[cpt] == '=') {
+				etat = 3;
+			}
+			break;
+		case 3:
+			if (requeteClient[cpt] != ' ') {
+				result += requeteClient[cpt];
+			}
+			else etat = 4;
+			break;
+		}
+		cpt++;
+	}
+}
+
+
 
 void HttpRequest::SetHeader(std::string &AnswerBuf, char *httpCode, const char *mime)
 {
@@ -120,4 +146,5 @@ void HttpRequest::SetHeader(std::string &AnswerBuf, char *httpCode, const char *
 	while (std::getline(fichier, ligne)) header << ligne;
 
 	AnswerBuf=header.str();
+	
 }
