@@ -12,5 +12,5 @@ public:
 
 private:
 	void SetHeader(std::string &AnswerBuf,char *httpCode, const char *mime="text/html");
-	void RequeteMachineEtats(std::string requeteClient, std::string &requete);
+	std::string RequeteMachineEtats(std::string requeteClient);
 };

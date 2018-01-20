@@ -3,7 +3,10 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
+#include <vector>
 #include "http.h"
+#include "index.h"
 #include "params.h"
 
 #define TAILLE 50
@@ -16,55 +19,45 @@ extern ParamIndex params;
 
 void HttpRequest::GetResponse(SOCKET sd)
 {
-	std::cout << "Début requête client" << std::endl;
+	std::cout << "Debut requete client" << std::endl; 
 
-	char buffer[TAILLE], bufferReponse[TAILLE]; // Buffer de la requête client et réponse serveur
+	char buffer[TAILLE]; // Buffer de la requête client
 	int nb, cpt=0;
 	std::string reponseServeur, requeteClient, requete="";
 
+	// Envoi de la page de recherche pour le client
 	SetHeader(reponseServeur, (char*) "200", "text/html");
-
-	/*
-	// On attend la fin de la requête D'accès à la page
-	while (requeteClient.find("\r\n\r\n") == -1) {
-		nb = recv(sd, buffer, TAILLE, 0);
-		requeteClient.append(buffer);
-	}
-	*/
-	
-	/* Envoi de la réponse contenant seulement la barre de recherche au client */
-	// Parcours de la réponse pour la bufferiser et l'envoyer au client
-	while (reponseServeur.length() - cpt > TAILLE) {
-		for (unsigned int i = cpt; i < cpt + TAILLE; i++) {
-			bufferReponse[i - cpt] = reponseServeur.at(i);
-		}
-		cpt += TAILLE;
-		nb = send(sd, bufferReponse, TAILLE, 0);
-	}
-	// Envoi de la fin de la réponse
-	for (unsigned int j = cpt; j <= reponseServeur.length() - 1; j++) {
-		bufferReponse[j - cpt] = reponseServeur.at(j);
-	}
-	// Vider le reste du buffer et envoyer la fin de la réponse
-	for (unsigned int k = reponseServeur.length() - cpt; k <= TAILLE - 1; k++) {
-		bufferReponse[k] = ' ';
-	}
-	nb = send(sd, bufferReponse, TAILLE, 0);
-	reponseServeur = "";
-	requeteClient ="";
+	nb = send(sd, reponseServeur.c_str(), reponseServeur.size(), 0);
 	
 	// On attend la fin de la requête client et la stock pour l'analyser
-	do {
+	nb = recv(sd, buffer, TAILLE, 0);
+	while (nb == TAILLE) {
 		nb = recv(sd, buffer, TAILLE, 0);
-		requeteClient.append(buffer);
-	} while (nb == TAILLE);
-	nb = 0;
+		requeteClient += buffer;
+	} 
 
-	// Analyse de la requête par la machine à état
-	RequeteMachineEtats(requeteClient, requete);
-	std::cout << "ICI LA REQUETE : " << requete << std::endl;
+	// Analyse de la requête par la machine à état ==> Récupération des éléments du champ de recherche
+	requete = RequeteMachineEtats(requeteClient);
 
+	// Dans le cas ou le champ de recherche n'est pas vide
+	if (requete.size() > 1) {
 	
+		// Echange des '+' par des ' ' dans les mots recherchés
+		std::replace(requete.begin(), requete.end(), '+', ' ');
+
+		// Stockage des mots dans un vector
+		std::vector<std::string> mots;
+	
+		// Découpage de la requete
+		std::stringstream ss(requete);
+		std::string mot;
+		while (ss >> mot) mots.push_back(mot);
+
+	}
+	
+	std::cout << "Fin de requete" << std::endl;
+
+
 	/*
 	
 	/* Etudier la requête client pour stocker les paramètres éventuels 
@@ -90,39 +83,41 @@ void HttpRequest::GetResponse(SOCKET sd)
 	
 }
 
-void HttpRequest::RequeteMachineEtats(std::string requeteClient, std::string &result)
+std::string HttpRequest::RequeteMachineEtats(std::string requeteClient)
 {
-	int etat = 0, cpt=0;
+	int state = 0, tmp=0;
+	std::string result = "";
 
-	while (etat != 4) {
-		switch (etat) {
+	while (state != 4 && (tmp < requeteClient.size() - 1)) {
+		switch (state) {
 		case 0:
-			if (requeteClient[cpt] == '/') {
-				etat = 1;
-			}
-			break;
+			if (requeteClient[tmp] == '/') {
+				state = 1;
+			} break;
 		case 1:
-			if (requeteClient[cpt] == '?') {
-				etat = 2;
+			if (requeteClient[tmp] == '?') {
+				state = 2;
 			}
-			else if (requeteClient[cpt] == ' ') {
-				etat = 4;
+			else if (requeteClient[tmp] == ' ') {
+				state = 4;
 			}
 			break;
 		case 2:
-			if (requeteClient[cpt] == '=') {
-				etat = 3;
+			if (requeteClient[tmp] == '=') {
+				state = 3;
 			}
 			break;
 		case 3:
-			if (requeteClient[cpt] != ' ') {
-				result += requeteClient[cpt];
+			if (requeteClient[tmp] != ' ') {
+				result += requeteClient[tmp];
 			}
-			else etat = 4;
+			else state = 4;
 			break;
 		}
-		cpt++;
+		tmp++;
 	}
+
+	return result;
 }
 
 
