@@ -199,5 +199,85 @@ std::map<int, int> computePageRank(std::string linksFile)
 
 void SearchPages(SOCKET sd, std::string requete)
 {
+	//Si il y a au moins un mot dans la requête
+	if (requete.size() >= 1) {
+		// Echange des '+' par des ' ' dans les mots recherchés
+		std::replace(requete.begin(), requete.end(), '+', ' ');
+
+		// Stockage des mots dans un vector
+		std::vector<std::string> mots;
+
+		// Découpage de la requete
+		std::stringstream ss(requete);
+		std::string mot;
+		while (ss >> mot) mots.push_back(mot);
+
+		//Booléen nous permettant de déterminer si on veut une requête avec des AND ou des OR --> Laisser à true pour des and, et mettre à false pour des OR
+		bool and_query = true;
+
+		//Connecteurs à la base SQL 
+		MYSQL *conn = nullptr;
+		MYSQL_RES *res_set;
+		MYSQL_ROW row;
+		int nb, i = 0;
+
+		conn = mysql_init(conn);
+		if (mysql_real_connect(conn, params.ServerName.c_str(), params.Login.c_str(), params.Password.c_str(), params.SchemeName.c_str(), 0, NULL, 0))
+		{
+			std::vector<std::string> tables = { "word_page","page","word" };
+
+		//FORMATION DE LA REQUETE DE SELECTION DES PAGES INTERESSANTES
+			//On sélectionne l'url de la page sélectionnée, ainsi que son résumé
+			std::string query = "SELECT Page.url, Page.resume";
+			// Clauses From and Where, Jointures par rapport aux id_page et id_word 
+			query += "FROM `page` Page, `word` Word, `word_page` WordPage ";
+			query += "WHERE Page.id_page = WordPage.id_page AND WordPage.id_word = Word.id_word AND(";
+
+			for (unsigned int i = 0; i < mots.size(); i++) {
+				query += "Word.word = '";
+				query += mots.at(i);
+				query += "'";
+				//Pour lier les différents mots à trouver, avec des OR
+				if (i < mots.size() - 1) {
+					query += " OR ";
+				}
+			}
+			query += ")";
+			//Clauses Group By 
+			query += "GROUP BY Page.id_page";
+			//Si on veut les AND ou des OR, en fonction de la valeur du booléen indiqué précédemment
+			if (and_query) {
+				query += " HAVING COUNT(*) = ";
+				query += std::to_string(mots.size());
+			}
+
+			//Clause Order By PageRank, on favorise les meilleurs pages ranks
+			query += " ORDER BY Page.PageRank";
+
+			std::cout << query << std::endl;
+
+			if (!mysql_query(conn, query.c_str()))
+			{
+				if (res_set = mysql_store_result(conn))
+				{
+					while (row = mysql_fetch_row(res_set)) {
+						std::string to_print = "<h4 style=\"color:blue; margin-bottom:2px\" >";
+						to_print += row[0];
+						to_print += "</h4><p style=\"color:grey; margin-top:2px\">";
+						to_print += row[1];
+						to_print += "</p>";
+						nb = send(sd, to_print.c_str(), to_print.size(), 0);
+					}
+					mysql_free_result(res_set);
+				}
+				else printf("%s\n", mysql_error(conn));
+			}
+			else printf("%s\n", mysql_error(conn));
+			mysql_close(conn);
+		}
+		std::cerr << mysql_error(conn) << std::endl;
+	}
+}
+
 
 }

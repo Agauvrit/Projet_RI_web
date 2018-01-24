@@ -39,21 +39,7 @@ void HttpRequest::GetResponse(SOCKET sd)
 	// Analyse de la requête par la machine à état ==> Récupération des éléments du champ de recherche
 	requete = RequeteMachineEtats(requeteClient);
 
-	// Dans le cas ou le champ de recherche n'est pas vide
-	if (requete.size() > 1) {
-	
-		// Echange des '+' par des ' ' dans les mots recherchés
-		std::replace(requete.begin(), requete.end(), '+', ' ');
-
-		// Stockage des mots dans un vector
-		std::vector<std::string> mots;
-	
-		// Découpage de la requete
-		std::stringstream ss(requete);
-		std::string mot;
-		while (ss >> mot) mots.push_back(mot);
-
-	}
+	SearchPages(sd, requete);
 	
 	std::cout << "Fin de requete" << std::endl;
 
