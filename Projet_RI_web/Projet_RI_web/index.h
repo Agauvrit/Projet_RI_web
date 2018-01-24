@@ -3,4 +3,5 @@
 
 void IndexData();
 void SearchPages(SOCKET sd, std::string requete);
-std::map<int, int> computePageRank(std::string linksFile);
+std::map<int, float> computePageRank(std::string linksFile);
+std::string getSelectWordID(std::string mot);
