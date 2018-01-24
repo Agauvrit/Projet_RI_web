@@ -308,8 +308,10 @@ std::string getSelectWordID(std::string mot) {
 }
 
 
-void SearchPages(SOCKET sd, std::string requete)
+std::string SearchPages(SOCKET sd, std::string requete)
 {
+	std::string to_print="";
+
 	// Echange des '+' par des ' ' dans les mots recherchés
 	std::replace(requete.begin(), requete.end(), '+', ' ');
 
@@ -386,9 +388,10 @@ void SearchPages(SOCKET sd, std::string requete)
 						nbResults++;
 					}
 					mysql_free_result(res_set);
-					std::string to_print = "<h2> Nombre de résultats : " + nbResults; 
+					std::ostringstream oss;
+					oss << nbResults;
+					to_print += "<h2> Nombre de résultats : " + oss.str(); 
 					to_print += "</h2>" + to_print2;
-					nb = send(sd, to_print.c_str(), to_print.size(), 0);
 				}
 				else printf("%s\n", mysql_error(conn));
 			}
@@ -397,4 +400,6 @@ void SearchPages(SOCKET sd, std::string requete)
 		}
 		std::cerr << mysql_error(conn) << std::endl;
 	}
+
+	return to_print;
 }

@@ -1,3 +1,8 @@
+/* Reste a faire  : */
+// - Vérifier que ça fonctionne les "et" et "ou" dans les requêtes
+// - Virer la majorité des affichages console
+// - Rendre propre le tout avec des commentaires
+
 #include <ctime>
 #include <sstream>
 #include <fstream>
@@ -23,11 +28,7 @@ void HttpRequest::GetResponse(SOCKET sd)
 
 	char buffer[TAILLE]; // Buffer de la requête client
 	int nb, cpt=0;
-	std::string reponseServeur, requeteClient;
-
-	// Envoi de la page de recherche pour le client
-	SetHeader(reponseServeur, (char*) "200", "text/html");
-	nb = send(sd, reponseServeur.c_str(), reponseServeur.size(), 0);
+	std::string reponseServeur, requeteClient, resultRequete;
 
 	do {
 		nb = recv(sd, buffer, TAILLE, 0);
@@ -37,7 +38,12 @@ void HttpRequest::GetResponse(SOCKET sd)
 	// Analyse de la requête par la machine à état ==> Récupération des éléments du champ de recherche
 	std::string requete = RequeteMachineEtats(requeteClient);
 
-	SearchPages(sd, requete);
+	resultRequete = SearchPages(sd, requete);
+
+	// Envoi de la page de recherche pour le client
+	SetHeader(reponseServeur, (char*) "200", "text/html");
+	reponseServeur += resultRequete;
+	nb = send(sd, reponseServeur.c_str(), reponseServeur.size(), 0);
 	
 	std::cout << "Fin de requete" << std::endl;
 
