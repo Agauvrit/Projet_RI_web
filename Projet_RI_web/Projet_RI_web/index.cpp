@@ -255,12 +255,14 @@ void SearchPages(SOCKET sd, std::string requete)
 			query += " ORDER BY Page.PageRank";
 
 			std::cout << query << std::endl;
-
+			
+			//On parcourt les résultats de la requête
 			if (!mysql_query(conn, query.c_str()))
 			{
 				if (res_set = mysql_store_result(conn))
-				{
+				{	//Tant qu'il reste des lignes dans le résultat
 					while (row = mysql_fetch_row(res_set)) {
+						//Mise en forme de l'affichage des différents résultats
 						std::string to_print = "<h4 style=\"color:blue; margin-bottom:2px\" >";
 						to_print += row[0];
 						to_print += "</h4><p style=\"color:grey; margin-top:2px\">";
