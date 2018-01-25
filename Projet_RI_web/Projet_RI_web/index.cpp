@@ -343,7 +343,7 @@ std::string SearchPages(SOCKET sd, std::string requete)
 
 			//FORMATION DE LA REQUETE DE SELECTION DES PAGES INTERESSANTES
 			//On sélectionne l'url de la page sélectionnée, ainsi que son résumé
-			std::string query = "SELECT p.url, p.resume ";
+			std::string query = "SELECT p.url, p.resume, p.id_page ";
 			// Clauses From and Where, Jointures par rapport aux id_page et id_word 
 			query += "FROM `page` p, `word` w, `word_page` wp ";
 			query += "WHERE p.id_page = wp.id_page AND wp.id_word = w.id_word AND(";
@@ -367,7 +367,7 @@ std::string SearchPages(SOCKET sd, std::string requete)
 			}
 
 			//Clause Order By PageRank, on favorise les meilleurs pages ranks
-			query += " ORDER BY p.pr";
+			query += " ORDER BY p.pr DESC";
 
 			std::cout << query << std::endl;
 
@@ -386,6 +386,7 @@ std::string SearchPages(SOCKET sd, std::string requete)
 						to_print2 += " ...";
 						to_print2 += "</p>";
 						nbResults++;
+						std::cout << "id : " << row[2] << std::endl;
 					}
 					mysql_free_result(res_set);
 					std::ostringstream oss;

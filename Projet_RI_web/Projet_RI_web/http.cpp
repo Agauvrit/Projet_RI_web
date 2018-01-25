@@ -1,7 +1,7 @@
 /* Reste a faire  : */
 // - Vérifier que ça fonctionne les "et" et "ou" dans les requêtes
 // - Virer la majorité des affichages console
-// - Rendre propre le tout avec des commentaires
+// - Rendre propre le tout avec des commentaires (Mentionner le booléen à changer pour les "et" et "ou")
 
 #include <ctime>
 #include <sstream>
