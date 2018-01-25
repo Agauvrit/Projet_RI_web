@@ -2,6 +2,7 @@
 // - Vérifier que ça fonctionne les "et" et "ou" dans les requêtes
 // - Virer la majorité des affichages console
 // - Rendre propre le tout avec des commentaires (Mentionner le booléen à changer pour les "et" et "ou")
+// - Préciser le chemin vers le dossier data
 
 #include <ctime>
 #include <sstream>

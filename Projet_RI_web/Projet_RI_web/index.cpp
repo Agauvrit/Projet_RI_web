@@ -87,10 +87,11 @@ void IndexData()
 				exit(EXIT_FAILURE);
 			}
 
+
 			// Récupération du résumé (Les 2 premières lignes)
 			for (unsigned int k = 0; k < 2; k++) {
 				std::getline(file, ligneTmp);
-				resume += ligneTmp;
+				if(k>=1) resume += ligneTmp;
 			}
 			file.close();
 			resume += " ...";
@@ -153,8 +154,9 @@ void IndexData()
 								requete += " WHERE NOT EXISTS (SELECT word FROM word WHERE BINARY word = BINARY '" + mot + "') LIMIT 1;";
 
 								// Ajout du mot dans la base
-								if (!mysql_query(conn, requete.c_str())) 
-									std::cout << "Ajout dans la table mot du mot " << mot << " realise avec succes" << std::endl;
+								if (!mysql_query(conn, requete.c_str()))
+									requete = "";
+									//std::cout << "Ajout dans la table mot du mot " << mot << " realise avec succes" << std::endl;
 								else {
 									printf("%s\n", mysql_error(conn));
 									exit(EXIT_FAILURE);
@@ -183,8 +185,8 @@ void IndexData()
 								requete += "LIMIT 1;";
 
 								// Ajout de la relation (mot - page) dans la base
-								if (!mysql_query(conn, requete.c_str())) 
-									std::cout << "Ajout dans la table mot_page du mot " << mot  << " et de la page : " << pageId << std::endl;
+								if (!mysql_query(conn, requete.c_str()))
+									requete = "";//std::cout << "Ajout dans la table mot_page du mot " << mot  << " et de la page : " << pageId << std::endl;
 								else {
 									printf("%s\n", mysql_error(conn));
 									exit(EXIT_FAILURE);
@@ -201,6 +203,7 @@ void IndexData()
 			file.close();
 		}	
 		mysql_close(conn);
+		std::cout << "Indexation terminée " << std::endl;
 	}
 	else std::cerr << mysql_error(conn) << std::endl;
 	
@@ -334,7 +337,7 @@ std::string SearchPages(SOCKET sd, std::string requete)
 		MYSQL_RES *res_set;
 		MYSQL_ROW row;
 		int nbResults = 0;
-		int nb, i = 0;
+		int i = 0;
 
 		conn = mysql_init(conn);
 		if (mysql_real_connect(conn, params.ServerName.c_str(), params.Login.c_str(), params.Password.c_str(), params.SchemeName.c_str(), 0, NULL, 0))
@@ -383,7 +386,6 @@ std::string SearchPages(SOCKET sd, std::string requete)
 						to_print2 += row[0];
 						to_print2 += "</h4><p style=\"color:grey; margin-top:2px\">";
 						to_print2 += row[1];
-						to_print2 += " ...";
 						to_print2 += "</p>";
 						nbResults++;
 						std::cout << "id : " << row[2] << std::endl;
