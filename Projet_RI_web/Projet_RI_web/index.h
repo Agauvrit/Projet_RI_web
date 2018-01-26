@@ -1,4 +1,4 @@
-/* Projet de recherche d'informations (Application de la recherche d'information au web) */
+/* Mini projet - Application de la recherche d'information au web */
 /* Auteurs : - Aurélien Gauvrit */
 /*			 - Jimmy Doré */
 /* Groupe : ID5 */

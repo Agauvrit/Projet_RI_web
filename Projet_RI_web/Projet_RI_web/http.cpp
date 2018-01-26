@@ -1,4 +1,4 @@
-/* Projet de recherche d'informations */
+/* Mini projet - Application de la recherche d'information au web */
 /* Auteurs : - Aurélien Gauvrit */
 /*			 - Jimmy Doré */
 /* Groupe : ID5 */
@@ -10,11 +10,14 @@
 /* Commentaires d'utilisation : 
 
   - Concernant l'indexation, le nombre de fichier à été fixé à 39 car le dossier de données contenait 39 fichiers. 
-	Ce dernier est changeable à travers la variable 'nbFichiers' du fichier 'INDEX.cpp'
+	Ce dernier est modifiable à travers la variable 'nbFichiers' du fichier 'INDEX.cpp'
 
-  - Vérifier le chemin d'accès aux données à travers le fichier de config est important pour éviter tout problème de lecture
-	Le chemin devant être de la forme : X:\\.../.../.../data/
-	Le chemin doit être passé en format absolu
+  - Il faut rajouter l'option "i" lors du lancement du programme si on veut réindexer tous les fichiers, sinon on n'indique pas cet argument
+
+  - Vérifier le chemin d'accès aux données à travers le fichier de config : 
+    Important pour éviter tout problème de lecture, il y a deux contraintes sur ce chemin :
+	      Le chemin devant être de la forme : X:\\.../.../.../data/
+	      Le chemin doit être passé en format absolu
 
   - Concernant la requête client, un booléen à été défini. Plus de précisions sont disponibles ci dessous concernant la variable 'QUERY_AND'
   
