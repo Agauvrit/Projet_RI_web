@@ -1,3 +1,14 @@
+/* Projet de recherche d'informations (Application de la recherche d'information au web) */
+/* Auteurs : - Aurélien Gauvrit */
+/*			 - Jimmy Doré */
+/* Groupe : ID5 */
+
+/* INDEX.cpp */
+/* Fichier d'indexation et de requêtage sur la base de données */
+
+/* Les informations d'utilisations sont disponibles en haut du fichier HTTP.cpp */
+
+// Importation des librairies
 #include <string>
 #include <iostream>
 #include <vector>
@@ -16,30 +27,32 @@
 
 extern ParamIndex params;
 
+// Methode d'indexation des données
 void IndexData()
 {
-	MYSQL *conn=nullptr;
+	MYSQL *conn = nullptr;
 
+	// Stockage des résultats de requête MySql    
 	MYSQL_RES *res_page_id;
 	MYSQL_ROW row_page_id;
 	MYSQL_RES *res_word_id;
 	MYSQL_ROW row_word_id;
-	
-	conn=mysql_init(conn);
+
+	conn = mysql_init(conn);
 	if (mysql_real_connect(conn, params.ServerName.c_str(), params.Login.c_str(), params.Password.c_str(), params.SchemeName.c_str(), 0, NULL, 0))
 	{
 		// Noms des tables
-		std::vector<std::string> tables={"word_page","page","word"};
+		std::vector<std::string> tables = { "word_page","page","word" };
 		std::string requete;
 
-		std::string lastID = "SELECT LAST_INSERT_ID() AS id";
+		std::string lastID = "SELECT LAST_INSERT_ID() AS id"; // Requête de récupération du dernier identifiant enregistré
 		std::string pageId;
 		std::string wordId;
 
 		// Nombre de fichiers à lire
 		unsigned int nbFichiers = 39;
 
-		// Noms des fichiers à traiter
+		// Variables temporaires de fichiers à traiter
 		std::string nomFichier;
 		std::string resume;
 		std::ifstream file;
@@ -50,26 +63,29 @@ void IndexData()
 		// Stockage du PageRank
 		std::map<int, float> pageRanks;
 
+
 		// On vide les tables
 		for (auto &table : tables)
 		{
-			std::string sql="TRUNCATE TABLE `";
-			sql+=table;
-			sql+="`";
+			std::string sql = "TRUNCATE TABLE `";
+			sql += table;
+			sql += "`";
 			if (!mysql_query(conn, sql.c_str())) std::cout << "Empty table '" << table << "'" << std::endl;
 			else std::cerr << mysql_error(conn) << std::endl;
 		}
-	
+
+
 		// On forme les noms de fichiers
 		std::string linksFile = params.BaseFiles.c_str();
 		std::string pagesFiles = params.BaseFiles.c_str();
 		linksFile += "links.txt";
 		pagesFiles += "files/";
-		
+
+
 		// Calcul du PageRank à partir du fichier de liens
 		pageRanks = computePageRank(linksFile);
 
-		
+
 		// Tous les fichiers jusqu'au nombre renseigné
 		for (unsigned int i = 0; i < nbFichiers; i++) {
 
@@ -82,7 +98,7 @@ void IndexData()
 
 			// Vérification de l'ouverture du fichier
 			file.open(nomFichier);
-			if (!file.is_open()){
+			if (!file.is_open()) {
 				std::cout << "Erreur lors de l'ouverture d'un fichier texte de donnees" << std::endl;
 				exit(EXIT_FAILURE);
 			}
@@ -91,17 +107,21 @@ void IndexData()
 			// Récupération du résumé (Les 2 premières lignes)
 			for (unsigned int k = 0; k < 2; k++) {
 				std::getline(file, ligneTmp);
-				if(k>=1) resume += ligneTmp;
+				if (k >= 1) resume += ligneTmp;
 			}
 			file.close();
 			resume += " ...";
 
-			// Création de la requête pour ajout dans la base des pages
+
+			// Requete d'insertion d'une page dans la base
 			requete = "INSERT INTO `page` (url, pr, resume) VALUES ('" + nomFichier + "', ";
 			requete += std::to_string(pageRanks[i]) + ", '" + resume + "');";
-			
+
+
+			// Insertion dans la table Page
 			if (!mysql_query(conn, requete.c_str())) {
-				std::cout << "Ajout dans la table page de la page " << i << " done" << std::endl;
+				std::cout << "Ajout de la page " << i << " la base de donnees " << std::endl;
+
 
 				// Récupération de l'identifiant de la page dans la base
 				if (!mysql_query(conn, lastID.c_str())) {
@@ -119,96 +139,103 @@ void IndexData()
 					exit(EXIT_FAILURE);
 				}
 
+
 				// Parcours des mots
 				file.open(nomFichier);
 				while (std::getline(file, mots)) {
-					//while (ligneTmp >> mots) {
-						if (i == 0)
-							std::cout << mots << std::endl;
 
-						// Nettoyage des mots
-						for (unsigned int i = 0; i < mots.size(); i++) {
-							int valChar = (int)mots[i];
-							if (mots[i] == 39) {
-								mots.insert(i + 1, "'");
-								mots[i] = '\\';
-								i++;
+
+					// Nettoyage des mots
+					for (unsigned int i = 0; i < mots.size(); i++) {
+						int valChar = (int)mots[i];
+						if (mots[i] == 39) {
+							mots.insert(i + 1, "'");
+							mots[i] = '\\';	// Echapement des caractère d'apostrophe
+							i++;
+						}
+						else if (!((valChar >= 48 && valChar <= 57) || (valChar >= 65 && valChar <= 90) ||
+							(valChar >= 97 && valChar <= 122) || (valChar >= 128 && valChar <= 167) ||
+							(valChar >= -32 && valChar <= -10) ||
+							(valChar >= -7 && valChar <= -4) ||
+							(valChar >= -64 && valChar <= -35))) {
+							mots[i] = ' ';	// Suppression des caractères inutiles
+						}
+					}
+
+
+					std::stringstream iss(mots); // Récupération mot par mot
+					std::string mot;
+
+					while (iss >> mot) {
+
+
+						std::transform(mot.begin(), mot.end(), mot.begin(), ::tolower); // On ajoute les mots en minuscule
+						if (mot.size() > 1) { // On n'ajoute pas les mots trop petits
+
+
+							// Requete d'insertion d'un mot dans la table mot
+							requete = "INSERT IGNORE INTO word (word) SELECT * FROM (SELECT BINARY '" + mot + "') as word";
+							requete += " WHERE NOT EXISTS (SELECT word FROM word WHERE BINARY word = BINARY '" + mot + "') LIMIT 1;";
+
+							// Ajout du mot dans la base
+							if (!mysql_query(conn, requete.c_str()))
+								requete = "";
+							else {
+								printf("%s\n", mysql_error(conn));
+								exit(EXIT_FAILURE);
 							}
-							else if (!((valChar >= 48 && valChar <= 57) || (valChar >= 65 && valChar <= 90) ||
-								(valChar >= 97 && valChar <= 122) || (valChar >= 128 && valChar <= 167) ||
-								(valChar >= -32 && valChar <= -10 ) ||
-								(valChar >= -7 && valChar <= -4 ) ||
-								(valChar >= -64 && valChar <= -35) )) {
-								mots[i] = ' ';
+
+							// Récupération de l'identifiant dans la base du mot ajouté
+							if (!mysql_query(conn, getSelectWordID(mot).c_str())) {
+								if (res_word_id = mysql_store_result(conn)) {
+									row_word_id = mysql_fetch_row(res_word_id); 
+									wordId = row_word_id[0]; // Identifiant du mot dans la base
+								}
+								else {
+									printf("%s\n", mysql_error(conn));
+									exit(EXIT_FAILURE);
+								} mysql_free_result(res_word_id);
+							}
+							else {
+								printf("%s\n", mysql_error(conn));
+								exit(EXIT_FAILURE);
+							}
+
+
+							// Requete d'insertion de la relation entre le mot et la page
+							requete = "INSERT IGNORE INTO word_page(id_word, id_page) SELECT * FROM (SELECT " + wordId;
+							requete += ") as id1, (SELECT " + pageId + ") as id2 WHERE ";
+							requete += "NOT EXISTS (SELECT id_word FROM word_page WHERE id_word = " + wordId + " AND id_page = " + pageId + ") AND ";
+							requete += "NOT EXISTS (SELECT id_page FROM word_page WHERE id_word = " + wordId + " AND id_page = " + pageId + ") ";
+							requete += "LIMIT 1;";
+
+
+							// Ajout de la relation (mot - page) dans la base
+							if (!mysql_query(conn, requete.c_str()))
+								requete = "";
+							else {
+								printf("%s\n", mysql_error(conn));
+								exit(EXIT_FAILURE);
 							}
 						}
-
-						std::stringstream iss(mots); // Récupération mot par mot
-						std::string mot;
-						while (iss >> mot) {
-
-							std::transform(mot.begin(), mot.end(), mot.begin(), ::tolower); // On ajoute les mots en minuscule
-							if (mot.size() > 1) { // On n'ajoute pas les mots trop petits
-								
-								requete = "INSERT IGNORE INTO word (word) SELECT * FROM (SELECT BINARY '" + mot + "') as word";
-								requete += " WHERE NOT EXISTS (SELECT word FROM word WHERE BINARY word = BINARY '" + mot + "') LIMIT 1;";
-
-								// Ajout du mot dans la base
-								if (!mysql_query(conn, requete.c_str()))
-									requete = "";
-									//std::cout << "Ajout dans la table mot du mot " << mot << " realise avec succes" << std::endl;
-								else {
-									printf("%s\n", mysql_error(conn));
-									exit(EXIT_FAILURE);
-								}
-
-								if (!mysql_query(conn, getSelectWordID(mot).c_str())) {
-									if (res_word_id = mysql_store_result(conn)) {
-										row_word_id = mysql_fetch_row(res_word_id); // Récupération du résultat de la requête
-										wordId = row_word_id[0]; // Identifiant du mot dans la base
-									}
-									else {
-										printf("%s\n", mysql_error(conn));
-										exit(EXIT_FAILURE);
-									} mysql_free_result(res_word_id);
-								}
-								else {
-									printf("%s\n", mysql_error(conn));
-									exit(EXIT_FAILURE);
-								}
-
-								// Ajout de la relation mot et page
-								requete = "INSERT IGNORE INTO word_page(id_word, id_page) SELECT * FROM (SELECT " + wordId;
-								requete += ") as id1, (SELECT " + pageId + ") as id2 WHERE ";
-								requete += "NOT EXISTS (SELECT id_word FROM word_page WHERE id_word = " + wordId + " AND id_page = " + pageId + ") AND ";
-								requete += "NOT EXISTS (SELECT id_page FROM word_page WHERE id_word = " + wordId + " AND id_page = " + pageId + ") ";
-								requete += "LIMIT 1;";
-
-								// Ajout de la relation (mot - page) dans la base
-								if (!mysql_query(conn, requete.c_str()))
-									requete = "";//std::cout << "Ajout dans la table mot_page du mot " << mot  << " et de la page : " << pageId << std::endl;
-								else {
-									printf("%s\n", mysql_error(conn));
-									exit(EXIT_FAILURE);
-								}
-							}
-						}
+					}
 					//}
 				}
+				std::cout << "Fin d'insertion dans la base de la page " << i << std::endl;
 			}
 			else {
 				printf("%s\n", mysql_error(conn));
 				exit(EXIT_FAILURE);
 			}
-			file.close();
-		}	
+			file.close(); // Fermeture du fichier
+		}
 		mysql_close(conn);
-		std::cout << "Indexation terminée " << std::endl;
+		std::cout << "Indexation terminee " << std::endl;
 	}
 	else std::cerr << mysql_error(conn) << std::endl;
-	
 }
 
+// Methode de calcul du PageRank pour chaque fichier
 std::map<int, float> computePageRank(std::string linksFile)
 {
 	// Stockage du PageRank (Clé ==> Numéro de fichier, Valeur ==> Valeur du pageRank pour ce fichier)
@@ -220,28 +247,28 @@ std::map<int, float> computePageRank(std::string linksFile)
 
 	int nbFichiers = 0; // Nombre de fichiers correspondant à la matrice
 
-	// Variables propres à l'algorithme PageRank
+
 	bool converge = false; // la convergence est-elle atteinte.
 	float d = 0.85f; // Valeur permettant de converger plus ou moins rapidement
 	float seuilConvergence = 0.00001f;
 
+
 	// Fichier à lire
 	std::ifstream fichier(linksFile);
+
 
 	// Variables temporaires de traitement du fichier
 	std::string ligne;
 	std::string mot; // Mot temporaire (Va contenir le nombre correspondant au lien ou non vers le prochain fichier)
-	
+
 	// Variables temporaires de comptage
 	int tmp = 0;
 	int cpt = 0;
-	int nbOk = 0;
-	
-	
+	int nbFilesConverge = 0;
 
-	
 	// Parcours du fichiers
 	while (std::getline(fichier, ligne)) {
+
 
 		// Vérification si on est à la première ligne du fichier pour récupérer le nombre de fichiers.
 		if (nbFichiers > 0) {
@@ -253,12 +280,13 @@ std::map<int, float> computePageRank(std::string linksFile)
 				if (!mot.compare("1")) { // Si on trouve un "1"
 
 					MatriceRelations.at(i).push_back(tmp); // Ajout du numéro de fichier 
-					Ci[tmp] = Ci[tmp]+1; // On ajoute un lien sortant pour ce fichier
+					Ci[tmp] = Ci[tmp] + 1; // On ajoute un lien sortant pour ce fichier
 				}
 			}
 			tmp++;
 		}
 		else { // Première ligne
+
 
 			nbFichiers = stoi(ligne); // Récupération du nombre de fichiers
 			for (int i = 0; i < nbFichiers; i++) { // Initialisation des éléments
@@ -273,7 +301,7 @@ std::map<int, float> computePageRank(std::string linksFile)
 
 	while (!converge) { // Tant que l'on ne converge pas
 		cpt++;
-	
+
 		for (int j = 0; j < nbFichiers; j++) { // Calcul du PR
 
 			float I = 0.0f;
@@ -284,20 +312,20 @@ std::map<int, float> computePageRank(std::string linksFile)
 			}
 
 			pageRanksTmp[j] = pageRanks[j]; // Stockage du PR précédent
-			pageRanks[j] = (1 - d) + (d * I);
+			pageRanks[j] = (1 - d) + (d * I); // Ajout du nouveau PR calculé
 		}
 
 		// Vérification de la convergence
 		for (int l = 0; l < nbFichiers; l++) {
 
 			if (abs(pageRanks[l] - pageRanksTmp[l]) <= seuilConvergence)
-				nbOk++;
+				nbFilesConverge++;
 		}
 
-		if (nbOk == nbFichiers) // Si tous les fichiers respecent le seuil de convergence alors on arrête
+		if (nbFilesConverge == nbFichiers) // Si tous les fichiers respecent le seuil de convergence alors on arrête
 			converge = true;
 
-		nbOk = 0;	
+		nbFilesConverge = 0;
 	}
 
 	std::cout << "Convergence apres : " << cpt << " iterations" << std::endl;
@@ -306,103 +334,8 @@ std::map<int, float> computePageRank(std::string linksFile)
 
 }
 
+// Methode de récupération de l'identifiant d'un mot dans la base
 std::string getSelectWordID(std::string mot) {
 	return "SELECT id_word FROM `word` WHERE BINARY word = BINARY '" + mot + "'";
 }
 
-
-std::string SearchPages(SOCKET sd, std::string requete)
-{
-	std::string to_print="";
-
-	// Echange des '+' par des ' ' dans les mots recherchés
-	std::replace(requete.begin(), requete.end(), '+', ' ');
-
-	// Stockage des mots dans un vector
-	std::vector<std::string> mots;
-
-	// Découpage de la requete
-	std::stringstream ss(requete);
-	std::string mot;
-	while (ss >> mot) mots.push_back(mot);
-
-	// Si la requête n'est pas vide
-	if (mots.size() >= 1) {
-
-		//Booléen nous permettant de déterminer si on veut une requête avec des AND ou des OR --> Laisser à true pour des and, et mettre à false pour des OR
-		bool and_query = true;
-
-		//Connecteurs à la base SQL 
-		MYSQL *conn = nullptr;
-		MYSQL_RES *res_set;
-		MYSQL_ROW row;
-		int nbResults = 0;
-		int i = 0;
-
-		conn = mysql_init(conn);
-		if (mysql_real_connect(conn, params.ServerName.c_str(), params.Login.c_str(), params.Password.c_str(), params.SchemeName.c_str(), 0, NULL, 0))
-		{
-			std::vector<std::string> tables = { "word_page","page","word" };
-
-			//FORMATION DE LA REQUETE DE SELECTION DES PAGES INTERESSANTES
-			//On sélectionne l'url de la page sélectionnée, ainsi que son résumé
-			std::string query = "SELECT p.url, p.resume, p.id_page ";
-			// Clauses From and Where, Jointures par rapport aux id_page et id_word 
-			query += "FROM `page` p, `word` w, `word_page` wp ";
-			query += "WHERE p.id_page = wp.id_page AND wp.id_word = w.id_word AND(";
-
-			for (unsigned int i = 0; i < mots.size(); i++) {
-				query += " BINARY w.word = BINARY '";
-				query += mots.at(i);
-				query += "'";
-				//Pour lier les différents mots à trouver, avec des OR
-				if (i < mots.size() - 1) {
-					query += " OR ";
-				}
-			}
-			query += ") ";
-			//Clauses Group By 
-			query += "GROUP BY p.id_page";
-			//Si on veut les AND ou des OR, en fonction de la valeur du booléen indiqué précédemment
-			if (and_query) {
-				query += " HAVING COUNT(*) = ";
-				query += std::to_string(mots.size());
-			}
-
-			//Clause Order By PageRank, on favorise les meilleurs pages ranks
-			query += " ORDER BY p.pr DESC";
-
-			std::cout << query << std::endl;
-
-			//On parcourt les résultats de la requête
-			if (!mysql_query(conn, query.c_str()))
-			{
-				std::string to_print2 = "";
-				if (res_set = mysql_store_result(conn))
-				{	//Tant qu'il reste des lignes dans le résultat
-					while (row = mysql_fetch_row(res_set)) {
-						//Mise en forme de l'affichage des différents résultats
-						to_print2 += "<h4 style=\"color:blue; margin-bottom:2px\" >";
-						to_print2 += row[0];
-						to_print2 += "</h4><p style=\"color:grey; margin-top:2px\">";
-						to_print2 += row[1];
-						to_print2 += "</p>";
-						nbResults++;
-						std::cout << "id : " << row[2] << std::endl;
-					}
-					mysql_free_result(res_set);
-					std::ostringstream oss;
-					oss << nbResults;
-					to_print += "<h2> Nombre de résultats : " + oss.str(); 
-					to_print += "</h2>" + to_print2;
-				}
-				else printf("%s\n", mysql_error(conn));
-			}
-			else printf("%s\n", mysql_error(conn));
-			mysql_close(conn);
-		}
-		std::cerr << mysql_error(conn) << std::endl;
-	}
-
-	return to_print;
-}
